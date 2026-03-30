@@ -9,7 +9,7 @@ const emailChannel = new EmailAlertChannel('email-channel-1', {
 })
 
 const slackChannel = new SlackAlertChannel('slack-channel-1', {
-  url: new URL('https://hooks.slack.com/services/REPLACE_W_YOUR_WEBHOOK'), // Replace with your webhook
+  url: new URL('https://hooks.slack.com/services/REPLACE_W_YOUR_WEBHOOK'),
   channel: '#ops-alerts',
   sendFailure: true,
 })
