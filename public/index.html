@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><title>Checkflix Premium</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>body { background-color: #141414; color: white; transition: all 0.3s; }</style>
+</head>
+<body class="font-sans">
+
+    <div id="login-screen" class="fixed inset-0 bg-black z-50 flex items-center justify-center">
+        <div class="bg-zinc-900 p-10 rounded-lg w-96 border border-zinc-800">
+            <h1 class="text-3xl font-bold text-red-600 mb-8">Sign In</h1>
+            <input id="email" type="email" placeholder="admin@checkly.com" class="w-full p-3 mb-4 bg-zinc-800 rounded border-none text-white">
+            <input id="pass" type="password" placeholder="password123" class="w-full p-3 mb-8 bg-zinc-800 rounded border-none text-white">
+            <button onclick="handleLogin()" class="w-full bg-red-600 py-3 rounded font-bold hover:bg-red-700">Sign In</button>
+            <p class="text-zinc-500 mt-4 text-xs text-center">Demo: admin@checkly.com / password123</p>
+        </div>
+    </div>
+
+    <div id="main-content" class="opacity-0">
+        <nav class="p-6 flex justify-between items-center fixed w-full top-0 z-40 bg-gradient-to-b from-black to-transparent">
+            <h1 class="text-3xl font-extrabold text-red-600 tracking-tighter">CHECKFLIX</h1>
+            <span id="user-display" class="text-sm border border-zinc-500 px-3 py-1 rounded"></span>
+        </nav>
+
+        <header class="h-screen flex flex-col justify-center px-12 bg-cover bg-center" style="background-image: linear-gradient(to right, #141414, transparent), url('https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=1200')">
+            <h2 class="text-6xl font-black mb-4 uppercase italic">Synthetic<br>Streaming</h2>
+            <button onclick="openCheckout()" class="bg-white text-black font-black py-4 px-10 rounded hover:bg-gray-300 transition w-fit text-lg">
+                GET PREMIUM PLAN
+            </button>
+        </header>
+    </div>
+
+    <div id="checkout-modal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-zinc-900 p-8 rounded-xl max-w-sm w-full border border-zinc-700 text-center">
+            <h3 class="text-2xl font-bold mb-2">Finalize Your Plan</h3>
+            <p class="text-zinc-400 mb-6 text-sm">Monthly Premium: $19.99/mo</p>
+            <div class="text-left space-y-4 mb-8">
+                <div class="bg-zinc-800 p-3 rounded text-sm text-zinc-400">Card: **** **** **** 4242</div>
+            </div>
+            <button id="pay-btn" onclick="processPayment()" class="w-full bg-red-600 py-4 rounded-lg font-bold">Pay & Start Watching</button>
+            <button onclick="closeCheckout()" class="mt-4 text-zinc-500 text-sm">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        const loginScreen = document.getElementById('login-screen');
+        const mainContent = document.getElementById('main-content');
+        const checkoutModal = document.getElementById('checkout-modal');
+
+        async function handleLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('pass').value;
+            
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ email, password })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                document.getElementById('user-display').innerText = data.user;
+                loginScreen.style.display = 'none'; // Use this
+                mainContent.style.opacity = '1';    // AND THIS to make the page appear
+            } else {
+                alert("Login Failed!");
+            }
+        }
+
+        function openCheckout() { checkoutModal.classList.remove('hidden'); }
+        function closeCheckout() { checkoutModal.classList.add('hidden'); }
+
+        async function processPayment() {
+            const btn = document.getElementById('pay-btn');
+            btn.innerText = "Processing...";
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/checkout', { method: 'POST' });
+                const data = await res.json();
+                if (res.ok) {
+                    alert("🚀 SUCCESS! Confirmation Number: " + data.confirmation);
+                    closeCheckout();
+                } else {
+                    alert("❌ CRITICAL ERROR: " + data.error);
+                }
+            } catch (e) { alert("Network Error"); }
+            btn.innerText = "Pay & Start Watching";
+            btn.disabled = false;
+        }
+    </script>
+</body>
+</html>
