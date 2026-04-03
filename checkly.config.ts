@@ -28,7 +28,7 @@ export default defineConfig({
     alertChannels: [emailChannel, slackChannel], 
     playwrightConfig: {
       use: {
-        baseURL: 'http://localhost:3000',
+        baseURL: process.env.ENVIRONMENT_URL || 'http://localhost:3000',
       },
     },
     // This tells Checkly to look for your Playwright Suite here
