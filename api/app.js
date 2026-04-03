@@ -1,10 +1,10 @@
 const express = require('express');
-const axios = require('axios');
 const path = require('path');
-const app = express();
-require('dotenv').config()
+require('dotenv').config();
 
-app.use(express.static('public'));
+const app = express();
+
+app.use(express.static(path.join(__dirname, '..', 'public')));
 app.use(express.json());
 
 const delay = (ms) => new Promise(res => setTimeout(res, ms));
@@ -12,7 +12,7 @@ const delay = (ms) => new Promise(res => setTimeout(res, ms));
 // --- API Endpoints ---
 
 app.post('/api/login', async (req, res) => {
-    await delay(200); // Simulate Auth latency
+    await delay(200);
     const { email, password } = req.body;
     if (email === 'admin@checkly.com' && password === 'password123') {
         return res.json({ success: true, token: 'fake-jwt-123', user: 'Checkly Hero' });
@@ -29,32 +29,21 @@ app.get('/api/movies', async (req, res) => {
 });
 
 app.post('/api/checkout', async (req, res) => {
-    console.log("💳 Processing Checkout Trace...");
-    await delay(500); // Simulated Payment Processing Span
-    
-    // Controlled failure for your demo
+    console.log("Processing Checkout Trace...");
+    await delay(500);
+
     if (Math.random() > 0.7) {
         return res.status(502).json({ error: "Upstream Payment Provider Timeout" });
     }
     res.json({ success: true, confirmation: 'NET-' + Math.random().toString(36).toUpperCase().substring(2, 10) });
 });
 
-const HEARTBEAT_URL = 'https://ping.checklyhq.com/d41bbf3e-ec4c-4b0b-89bd-a773577a7b3c';
-
-function sendHeartbeat() {
-    axios.get(HEARTBEAT_URL)
-        .then(() => console.log('💓 Heartbeat sent to Checkly'))
-        .catch(err => console.error('💔 Heartbeat failed:', err.message));
+// Only start the server when running locally (not on Vercel)
+if (!process.env.VERCEL) {
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+        console.log(`Checkflix Clone running: http://localhost:${PORT}`);
+    });
 }
 
-app.listen(3000, () => {
-    console.log('🎬 Checkflix Clone running: http://localhost:3000');
-    
-    // Send initial heartbeat on startup
-    sendHeartbeat(); 
-    
-    // Ping every 4 minutes (must be less than your 5-minute period)
-    setInterval(sendHeartbeat, 4 * 60 * 1000); 
-});
-
-app.listen(3000, () => console.log('🎬 Checkflix Clone running: http://localhost:3000'));
+module.exports = app;
