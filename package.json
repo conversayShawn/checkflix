@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node api/app.js",
     "dev": "node --require ./api/tracing.js api/app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "checkly:test": "npm --prefix checkly run test",
+    "checkly:deploy": "npm --prefix checkly run deploy"
   },
   "keywords": [],
   "author": "",
@@ -19,10 +20,5 @@
     "@opentelemetry/sdk-trace-node": "^2.6.0",
     "dotenv": "^17.3.1",
     "express": "^5.2.1"
-  },
-  "devDependencies": {
-    "@playwright/test": "^1.58.2",
-    "checkly": "^7.7.0",
-    "jiti": "^2"
   }
 }
