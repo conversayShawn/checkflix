@@ -33,9 +33,9 @@ export default defineConfig({
     },
     // This tells Checkly to look for your Playwright Suite here
     browserChecks: {
-      testMatch: '**/__checks__/**/*.spec.ts',
+      testMatch: '**/checkly/tests/**/*.spec.ts',
     },
-    checkMatch: '**/__checks__/**/*.check.ts',
+    checkMatch: '**/checkly/__checks__/**/*.check.ts',
   },
   cli: {
     runLocation: 'us-east-1',

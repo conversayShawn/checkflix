@@ -4,7 +4,7 @@ require('dotenv').config();
 
 const app = express();
 
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, '..', 'public')));
 app.use(express.json());
 
 const delay = (ms) => new Promise(res => setTimeout(res, ms));
@@ -46,5 +46,4 @@ if (!process.env.VERCEL) {
     });
 }
 
-// Export for Vercel serverless
 module.exports = app;
