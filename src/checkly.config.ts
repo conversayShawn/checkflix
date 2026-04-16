@@ -3,7 +3,7 @@ import { EmailAlertChannel, SlackAlertChannel } from 'checkly/constructs'
 
 // 1. Define your Alert Channels
 const emailChannel = new EmailAlertChannel('email-channel-1', {
-  address: 'YOUR_EMAIL@domain.com',
+  address: 'shawn@checklyhq.com',
   sendFailure: true,
   sendRecovery: true,
 })

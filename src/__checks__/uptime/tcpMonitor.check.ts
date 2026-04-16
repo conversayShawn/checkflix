@@ -5,8 +5,8 @@ new TcpMonitor('local-db-check', {
   tags: ['uptime', 'infrastructure'],
   frequency: Frequency.EVERY_1M,
   request: {
-    hostname: 'host.docker.internal', 
-    port: 3000, 
+    hostname: 'host.docker.internal',
+    port: 5432,
     assertions: [
       TcpAssertionBuilder.responseTime().lessThan(500)
     ],
