@@ -7,7 +7,12 @@
     "start": "node api/app.js",
     "dev": "node --require ./api/tracing.js api/app.js",
     "checkly:test": "npm --prefix checkly run test",
-    "checkly:deploy": "npm --prefix checkly run deploy"
+    "checkly:deploy": "npm --prefix checkly run deploy",
+    "demo:up": "./scripts/chaos.sh up",
+    "demo:break-db": "./scripts/chaos.sh break-db",
+    "demo:heal": "./scripts/chaos.sh heal",
+    "demo:down": "./scripts/chaos.sh down",
+    "demo:status": "./scripts/chaos.sh status"
   },
   "keywords": [],
   "author": "",

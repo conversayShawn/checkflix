@@ -1,3 +1,6 @@
+TEMP
+.github
+
 node_modules
 .next
 test-results

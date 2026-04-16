@@ -62,3 +62,7 @@ npx checkly test
 ```bash
 npx checkly deploy
 ```
+
+## Failure Demos
+
+Want to intentionally break checks to show why each monitor type matters? See [scripts/FAILURE-DEMOS.md](scripts/FAILURE-DEMOS.md).
