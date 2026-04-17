@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-test('checkflix Checkout Flow', async ({ page }) => {
+test('checkflix Checkout Flow @pwcs', async ({ page }) => {
   const target = process.env.CHECKLY_AGENT ? 'http://host.docker.internal:3000' : 'http://localhost:3000';
   
   // 1. Logic for Intermittent "Real" Error (40% chance)
