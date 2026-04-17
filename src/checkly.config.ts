@@ -1,18 +1,5 @@
 import { defineConfig } from 'checkly'
-import { EmailAlertChannel, SlackAlertChannel } from 'checkly/constructs'
-
-// 1. Define your Alert Channels
-const emailChannel = new EmailAlertChannel('email-channel-1', {
-  address: 'shawn@checklyhq.com',
-  sendFailure: true,
-  sendRecovery: true,
-})
-
-const slackChannel = new SlackAlertChannel('slack-channel-1', {
-  url: new URL('https://hooks.slack.com/services/REPLACE_W_YOUR_WEBHOOK'),
-  channel: '#ops-alerts',
-  sendFailure: true,
-})
+import { emailChannel, slackChannel } from './__checks__/utils/alert-channels'
 
 export default defineConfig({
   projectName: 'Net-Stream Global Monitoring',
