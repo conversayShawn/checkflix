@@ -2,7 +2,7 @@ const { NodeSDK } = require('@opentelemetry/sdk-node');
 const { OTLPTraceExporter } = require('@opentelemetry/exporter-trace-otlp-http');
 const { BatchSpanProcessor } = require('@opentelemetry/sdk-trace-node');
 const { getNodeAutoInstrumentations } = require('@opentelemetry/auto-instrumentations-node');
-require('dotenv').config();
+require('dotenv').config({ path: 'src/.env', override: true });
 
 // Checkly exporter
 const checklyExporter = new OTLPTraceExporter({
