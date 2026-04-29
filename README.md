@@ -23,15 +23,13 @@ npm install
 
 ### 2. Create a `.env` file
 
-Create a `.env` file in the project root with your Checkly OTel API key:
+Create a `src/.env` file with your Checkly OTel API key:
 
 ```
 CHECKLY_OTEL_API_KEY=<your-checkly-otel-api-key>
-CX_API_KEY=<your-coralogix-api-key>
-CX_DOMAIN=<your-coralogix-domain>
 ```
 
-`CX_DOMAIN` is your Coralogix region domain (e.g. `coralogix.us`, `coralogix.com`, `eu2.coralogix.com`, `coralogix.in`, `coralogixsg.com`).
+Coralogix is configured via Checkly's Coralogix integration (Account Settings → Integrations → Coralogix), so no Coralogix credentials are needed in `.env`.
 
 ## Running the App
 

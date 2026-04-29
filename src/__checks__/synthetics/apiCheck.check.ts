@@ -8,5 +8,7 @@ export const catalogCheck = new ApiCheck('catalog-api-check', {
   request: {
     url: 'http://host.docker.internal:3000/api/movies',
     method: 'GET',
-  }
+  },
+  sen
+  alert
 })

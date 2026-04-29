@@ -9,8 +9,8 @@ export default defineConfig({
     activated: true,
     muted: false,
     runtimeId: '2025.04', // Use the latest stable runtime
-    // locations: ['us-east-1', 'eu-west-1'],
-    privateLocations: ['demo'],
+    locations: ['us-east-1', 'eu-west-1'],
+    // privateLocations: ['demo'],
     tags: ['production', 'critical'],
     alertChannels: [emailChannel, slackChannel], 
     playwrightConfig: {

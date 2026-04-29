@@ -2,9 +2,9 @@ const { NodeSDK } = require('@opentelemetry/sdk-node');
 const { OTLPTraceExporter } = require('@opentelemetry/exporter-trace-otlp-http');
 const { BatchSpanProcessor } = require('@opentelemetry/sdk-trace-node');
 const { getNodeAutoInstrumentations } = require('@opentelemetry/auto-instrumentations-node');
+const { resourceFromAttributes } = require('@opentelemetry/resources');
 require('dotenv').config({ path: 'src/.env', override: true });
 
-// Checkly exporter
 const checklyExporter = new OTLPTraceExporter({
   url: 'https://otel.eu-west-1.checklyhq.com/v1/traces',
   headers: {
@@ -12,19 +12,13 @@ const checklyExporter = new OTLPTraceExporter({
   },
 });
 
-// Coralogix exporter
-const coralogixExporter = new OTLPTraceExporter({
-  url: `https://ingress.${process.env.CX_DOMAIN}/v1/traces`,
-  headers: {
-    'Authorization': `Bearer ${process.env.CX_API_KEY}`
-  },
-});
-
 const sdk = new NodeSDK({
-  spanProcessors: [
-    new BatchSpanProcessor(checklyExporter),
-    new BatchSpanProcessor(coralogixExporter),
-  ],
+  resource: resourceFromAttributes({
+    'cx.application.name': 'shawn-checkflix',
+    'cx.subsystem.name': 'checkflix-api',
+    'service.name': 'checkflix-api',
+  }),
+  spanProcessors: [new BatchSpanProcessor(checklyExporter)],
   instrumentations: [getNodeAutoInstrumentations()]
 });
 

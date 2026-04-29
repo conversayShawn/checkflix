@@ -1,10 +1,22 @@
 import { test, expect } from '@playwright/test'
 
-test('checkflix Checkout Flow @pwcs', async ({ page }) => {
+test('checkflix Checkout Flow @pwcs', async ({ page }, testInfo) => {
   const target = process.env.CHECKLY_AGENT ? 'http://host.docker.internal:3000' : 'http://localhost:3000';
-  
-  // 1. Logic for Intermittent "Real" Error (40% chance)
-  const isFlakyRun = Math.random() < 0.4;
+
+  // Flaky trigger logic:
+  // - Browser Check (no named pw project): 40% chance — keep original behavior
+  // - Playwright Check Suite: only the `chromium` project is allowed to go flaky,
+  //   and only ~1 in 18 runs. `firefox` / `webkit` always use correct credentials.
+  const projectName = testInfo.project.name;
+  const isPlaywrightSuiteRun = ['chromium', 'firefox', 'webkit'].includes(projectName);
+
+  let isFlakyRun = false;
+  if (!isPlaywrightSuiteRun) {
+    isFlakyRun = Math.random() < 0.4;
+  } else if (projectName === 'chromium') {
+    isFlakyRun = Math.random() < 1 / 18;
+  }
+
   const passwordToUse = isFlakyRun ? 'password1!' : 'password123';
 
   if (isFlakyRun) {
