@@ -38,6 +38,29 @@ app.post('/api/checkout', async (req, res) => {
     res.json({ success: true, confirmation: 'NET-' + Math.random().toString(36).toUpperCase().substring(2, 10) });
 });
 
+app.post('/api/cron/cleanup', async (req, res) => {
+    try {
+        console.log('Pruning stale sessions...');
+        await delay(150);
+        const prunedCount = Math.floor(Math.random() * 5);
+
+        const heartbeatUrl = process.env.CHECKLY_HEARTBEAT_URL;
+        if (!heartbeatUrl) {
+            return res.status(500).json({ error: 'CHECKLY_HEARTBEAT_URL not configured' });
+        }
+
+        const pingResponse = await fetch(heartbeatUrl);
+        if (!pingResponse.ok) {
+            return res.status(502).json({ error: 'Heartbeat ping failed', status: pingResponse.status });
+        }
+
+        res.json({ ok: true, prunedCount });
+    } catch (err) {
+        console.error('Cleanup task failed:', err);
+        res.status(500).json({ error: 'Cleanup task failed' });
+    }
+});
+
 // Only start the server when running locally (not on Vercel)
 if (!process.env.VERCEL) {
     const PORT = process.env.PORT || 3000;

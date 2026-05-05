@@ -1,0 +1,16 @@
+name: Checkflix Cleanup Cron
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+jobs:
+  trigger-cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger cleanup endpoint
+        run: |
+          curl -fsS -X POST \
+            -w "\nHTTP %{http_code} in %{time_total}s\n" \
+            https://checkly-demo-app.vercel.app/api/cron/cleanup
