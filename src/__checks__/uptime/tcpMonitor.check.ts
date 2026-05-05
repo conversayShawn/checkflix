@@ -7,8 +7,8 @@ new TcpMonitor('app-tcp-check', {
   group: uptimeGroup,
   frequency: Frequency.EVERY_1M,
   request: {
-    hostname: 'host.docker.internal',
-    port: 3000,
+    hostname: 'checkly-demo-app.vercel.app',
+    port: 443,
     assertions: [
       TcpAssertionBuilder.responseTime().lessThan(500)
     ],

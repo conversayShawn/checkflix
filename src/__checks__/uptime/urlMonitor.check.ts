@@ -1,14 +1,15 @@
 import { UrlMonitor, UrlAssertionBuilder, Frequency } from 'checkly/constructs'
 import { uptimeGroup } from '../utils/check-groups'
 
+const targetUrl = process.env.ENVIRONMENT_URL || 'https://checkly-demo-app.vercel.app'
+
 new UrlMonitor('checkflix-url-monitor', {
-  name: 'Checkflix Local Uptime',
+  name: 'Checkflix Uptime',
   tags: ['uptime', 'http'],
   group: uptimeGroup,
   frequency: Frequency.EVERY_1M,
   request: {
-    // Use the Docker-to-Host bridge address
-    url: 'http://host.docker.internal:3000', 
+    url: targetUrl,
     assertions: [
       UrlAssertionBuilder.statusCode().equals(200),
     ],

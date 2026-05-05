@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import { defineConfig } from 'checkly'
 import { emailChannel, slackChannel } from './__checks__/utils/alert-channels'
 
@@ -15,7 +16,7 @@ export default defineConfig({
     alertChannels: [emailChannel, slackChannel], 
     playwrightConfig: {
       use: {
-        baseURL: process.env.ENVIRONMENT_URL || 'http://localhost:3000',
+        baseURL: process.env.ENVIRONMENT_URL || 'https://checkly-demo-app.vercel.app',
       },
     },
     // This tells Checkly to look for your Playwright Suite here
@@ -25,7 +26,7 @@ export default defineConfig({
     checkMatch: '__checks__/**/*.check.ts',
   },
   cli: {
-    // runLocation: 'us-east-1',
-    privateRunLocation: 'demo'
+    runLocation: 'us-east-1',
+    // privateRunLocation: 'demo'
   },
 })

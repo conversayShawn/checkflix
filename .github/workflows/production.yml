@@ -1,0 +1,126 @@
+name: Checkly Production Gatekeeper
+
+# Layer 3: Runs after a PR merges to main. Executes Checkly checks against
+# the live production URL. On success, syncs the latest check definitions
+# to Checkly Cloud. On failure, auto-rolls back the production deployment
+# and fires alerts to Slack + opens a GitHub issue.
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+
+env:
+  CHECKLY_API_KEY: ${{ secrets.CHECKLY_API_KEY }}
+  CHECKLY_ACCOUNT_ID: ${{ secrets.CHECKLY_ACCOUNT_ID }}
+  ENVIRONMENT_URL: ${{ vars.PRODUCTION_URL }}
+
+jobs:
+  gatekeeper:
+    name: Production Gatekeeper
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    permissions:
+      contents: write   # needed for the (commented) git revert fallback
+      issues: write     # needed to auto-open an incident issue on failure
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: src/node_modules
+          key: checkly-node-modules-${{ hashFiles('src/package-lock.json') }}
+
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        working-directory: src
+        run: npm ci
+
+      # --- The gate ----------------------------------------------------------
+      - name: Run Checkly checks against production
+        id: run-checks
+        working-directory: src
+        run: npx checkly test --reporter=github --record
+
+      # --- Success path: sync check definitions to Checkly Cloud -------------
+      - name: Deploy checks to Checkly Cloud
+        if: steps.run-checks.outcome == 'success'
+        working-directory: src
+        run: npx checkly deploy --force
+
+      # --- Failure path: rollback --------------------------------------------
+      # Option A (ACTIVE): Vercel deployment rollback.
+      # Instant, no git churn. Production is healthy in seconds while the
+      # team fixes forward. Requires VERCEL_TOKEN + VERCEL_PROJECT_ID secrets.
+      - name: Rollback Vercel deployment
+        if: failure() && steps.run-checks.outcome == 'failure'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          npm i -g vercel@latest
+          # Find the previous READY production deployment and promote it.
+          PREVIOUS_URL=$(vercel ls "$VERCEL_PROJECT_ID" \
+            --token "$VERCEL_TOKEN" \
+            --prod \
+            --yes \
+            | awk 'NR==2 {print $2}')
+          echo "Promoting previous deployment: $PREVIOUS_URL"
+          vercel promote "$PREVIOUS_URL" --token "$VERCEL_TOKEN" --yes
+
+      # Option B (COMMENTED — for demo discussion): git revert rollback.
+      # Reverts the merge commit on main. Source of truth stays aligned with
+      # what's serving traffic, but creates a new commit and re-triggers CI.
+      #
+      # - name: Rollback via git revert
+      #   if: failure() && steps.run-checks.outcome == 'failure'
+      #   run: |
+      #     git config user.name  "checkly-gatekeeper[bot]"
+      #     git config user.email "checkly-gatekeeper@users.noreply.github.com"
+      #     git revert --no-edit HEAD
+      #     git push origin main
+
+      # --- Failure path: alerts ----------------------------------------------
+      - name: Notify Slack
+        if: failure() && steps.run-checks.outcome == 'failure'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{
+              \"text\": \":rotating_light: *Production gatekeeper failed* — auto-rollback triggered\n*PR:* ${{ github.event.pull_request.html_url }}\n*Commit:* ${{ github.sha }}\n*Run:* ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
+            }" \
+            "$SLACK_WEBHOOK_URL"
+
+      - name: Open incident issue
+        if: failure() && steps.run-checks.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Production gatekeeper failed for PR #${pr.number}`,
+              labels: ['incident', 'checkly-gatekeeper'],
+              body: [
+                `Checkly production checks failed after merging **${pr.title}** (#${pr.number}).`,
+                ``,
+                `- **Commit:** ${context.sha}`,
+                `- **PR:** ${pr.html_url}`,
+                `- **Workflow run:** ${runUrl}`,
+                ``,
+                `Auto-rollback has been triggered. Please investigate and fix forward.`,
+              ].join('\n'),
+            });

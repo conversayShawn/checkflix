@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 
 test('checkflix Checkout Flow @pwcs', async ({ page }, testInfo) => {
-  const target = process.env.CHECKLY_AGENT ? 'http://host.docker.internal:3000' : 'http://localhost:3000';
+  const target = process.env.ENVIRONMENT_URL || 'https://checkly-demo-app.vercel.app';
 
   // Flaky trigger logic:
   // - Browser Check (no named pw project): 40% chance — keep original behavior

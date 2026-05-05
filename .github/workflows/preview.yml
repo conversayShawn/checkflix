@@ -1,0 +1,47 @@
+name: Checkly Preview Gate
+
+# Layer 2: Runs Checkly checks against a Vercel preview deployment.
+# Triggered automatically whenever Vercel posts a successful deployment_status
+# (i.e. every time a PR pushes a new commit and Vercel finishes building).
+# A failure here turns the PR check red and should block merge via branch protection.
+
+on:
+  deployment_status:
+
+env:
+  CHECKLY_API_KEY: ${{ secrets.CHECKLY_API_KEY }}
+  CHECKLY_ACCOUNT_ID: ${{ secrets.CHECKLY_ACCOUNT_ID }}
+  ENVIRONMENT_URL: ${{ github.event.deployment_status.target_url }}
+
+jobs:
+  checkly-gate:
+    name: Checkly Preview Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Only run when the Vercel deploy actually succeeded. Skip backend/API
+    # deployments if you have a separate Vercel project for them.
+    if: github.event.deployment_status.state == 'success'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: src/node_modules
+          key: checkly-node-modules-${{ hashFiles('src/package-lock.json') }}
+
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        working-directory: src
+        run: npm ci
+
+      - name: Run Checkly checks against preview URL
+        working-directory: src
+        env:
+          ENVIRONMENT_URL: ${{ env.ENVIRONMENT_URL }}
+        run: npx checkly test --reporter=github --record
